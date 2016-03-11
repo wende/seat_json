@@ -90,10 +90,3 @@ def deps do
   [{:seat_json, "~> 0.0.1"}]
 end
 ```
-  2. Ensure seat_json is started before your application:
-
-```elixir
-def application do
-  [applications: [:seat_json]]
-end
-```
