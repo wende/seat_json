@@ -1,23 +1,32 @@
 defmodule SeatJson do
   use ExUnit.CaseTemplate
-  using auth: auth
-    do quote do
-      require ApiHelper
-      import ApiHelper, only: [api: 3, check_call_before: 1]
+
+  defp usings(auth, mod) do
+    quote do
+      require SeatJson
+      import SeatJson, only: [api: 3, api: 4, check_call_before: 2]
 
       setup context do
         context = context
         |> unquote(auth).()
-        |> check_call_before
+        |> check_call_before(unquote(mod))
         {:ok, context}
       end
     end
   end
-  def check_call_before(%{call_before: {name, params}} = context) do
-    apply(__MODULE__, name, params)
+
+  using auth: auth do
+    usings(auth, __CALLER__.module)
+  end
+  using [] do
+    usings(fn a -> a end, __CALLER__.module)
+  end
+
+  def check_call_before(%{call_before: {name, params}} = context, module) do
+    apply(module, name, params)
     context
   end
-  def check_call_before(context), do: context
+  def check_call_before(context, module), do: context
 
   def test_api(opts \\ [], auth, conn, ep)
   def test_api([headers: headers, params: p, body_params: bp], auth, conn, ep) do
@@ -67,22 +76,42 @@ defmodule SeatJson do
     |> Plug.Conn.fetch_session()
     |> Plug.Conn.fetch_query_params()
   end
-  defmacro api(method, url, opts \\ [], returns: return) do
-    Agent.start_link(fn -> 0 end, name: :counter)
-    counter = Agent.get_and_update :counter, fn a -> {a, a+1} end
+    defp get_counter() do
+    quote do: Module.put_attribute(__MODULE__, :counter, (Module.get_attribute(__MODULE__, :counter) || 0) + 1)
+  end
+  defp quoted_api(method, url, opts, returns: returns, guards: guards) do
     method = to_string(method) |> String.upcase
     tag = opts[:as] || :none
     info = opts[:info]
+    assertion = case guards do
+                  nil -> quote do: true
+                  g -> quote do: assert(unquote(g))
+                end
+    
     quote do
+      unquote(get_counter())
       @tag as: unquote(tag)
-      test "API - #{unquote(method)} #{unquote(url)} as #{unquote(tag)} ##{unquote(counter)} #{unquote(info) || ""}", meta do
-        result = ApiHelper.test_api(unquote(opts), meta[:auth] || {:none, nil}, conn(unquote(method), unquote(url)), @endpoint)
+      test "API - #{unquote(method)} #{unquote(url)} as #{unquote(tag)} ##{@counter} #{unquote(info) || ""}", meta do
+        result = SeatJson.test_api(unquote(opts), meta[:auth] || {:none, nil}, conn(unquote(method), unquote(url)), @endpoint)
         try do
-          (fn unquote(return) -> true end).(result)
+          (fn unquote(returns) -> unquote(assertion) end).(result)
         rescue
           FunctionClauseError -> raise "Got #{inspect(result, [pretty: true])}"
         end
       end
     end
+  end
+
+  defmacro api(method, url, returns: returns) do
+    quoted_api(method, url, [], returns: returns, guards: nil)
+  end
+  defmacro api(method, url, returns: returns, guards: guards) do
+    quoted_api(method, url, [], returns: returns, guards: guards)
+  end
+  defmacro api(method, url, opts, returns: returns) do
+    quoted_api(method, url, opts, returns: returns, guards: nil)
+  end
+  defmacro api(method, url, opts, returns: returns, guards: guards) do
+    quoted_api(method, url, opts, returns: returns, guards: guards)
   end
 end

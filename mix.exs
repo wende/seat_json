@@ -3,11 +3,13 @@ defmodule SeatJson.Mixfile do
 
   def project do
     [app: :seat_json,
-     version: "0.0.1",
+     version: "0.0.11",
      elixir: "~> 1.2",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     deps: deps]
+     deps: deps,
+     description: "Simple Elixir Api Testing lib"
+    ]
   end
 
   # Configuration for the OTP application
