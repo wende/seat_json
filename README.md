@@ -82,9 +82,7 @@ Arguments:
 ```
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
-
-  1. Add seat_json to your list of dependencies in `mix.exs`:
+  Add seat_json to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [{:seat_json, "~> 0.0.1"}]
