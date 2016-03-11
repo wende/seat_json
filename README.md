@@ -50,14 +50,20 @@ returns: {200, %{"user" => %{"email" => _, "inserted_at" => _, "name" => _}}}
 ```
 
 ## Documentation
-### `use SeatJson`
+### Use SeatJson
+```elixir 
+use SeatJson
+```
 `SeatJson.__using__/1` takes one parameter `auth: fn {tag, auth}`
 Where `tag` is whatever atom You'd like to use, and auth is Guardian object
 This macro maps to
 `Guardian.Plug.sign_in(conn, auth.user, :token, perms: %{default: Guardian.Permissions.available(level)})`
 If you don't provide `:auth` you can't use authenthication
 
-### `macro api(method, url, opts \\ [], returns: match, guards: assertion)`
+###  api/4
+```elixir
+macro api(method, url, opts \\ [], returns: match, guards: assertion)
+```
 Arguments:
 
 - `method` - HTTP method to use: :get, :post, :put, :delete, :patch etc
