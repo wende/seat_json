@@ -40,7 +40,7 @@ api :post, "/auth/login", [
   info: "Allows user to log in",
   params:
   %{
-    "email" => "email@example.com,
+    "email" => "email@example.com",
     "password" => "somepassword",
     "password_confirmation" => "somepassword",
     "name" => "Krzysztof Wende",
