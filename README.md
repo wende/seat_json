@@ -44,7 +44,8 @@ api :post, "/auth/login", [
     "password" => "somepassword",
     "password_confirmation" => "somepassword",
     "name" => "Krzysztof Wende",
-}],
+  }
+],
 returns: {200, %{"user" => %{"email" => _, "inserted_at" => _, "name" => _}}} 
 ```
 
